@@ -9,7 +9,7 @@ import copy
 import numpy as np
 from Bio import SeqIO
 
-def n50(fasta, n):
+def get_stats(fasta, n):
 	lengths = []
 	for seq in SeqIO.parse(fasta, 'fasta'):
 		lengths.append(len(seq))
@@ -63,7 +63,7 @@ def main():
 			sys.exit(2)
 		
 	try:
-		num_seqs, n50_value, average_length, med_length, total_length, min_length, max_length  = n50(fasta, n)
+		num_seqs, n50_value, average_length, med_length, total_length, min_length, max_length  = get_stats(fasta, n)
 		print '\n***Results for %s***\n' % fasta
 		print 'There are %i sequences' % (num_seqs)
 		print 'The N%i is: %i' % (n, n50_value)
