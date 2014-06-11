@@ -32,7 +32,7 @@ def get_stats(fasta, n):
 
 def usage():
 	print 	"""
-\ncfasta_stats.py.\n
+\nfasta_stats.py.\n
 Returns N50 (or N of your choice) and other stats of a FASTA file of sequences.\n
 N50 is calculated as the sequence length above which 50% of the total sequence 
 length lies when the sequences are sorted in order of descending length.\n
