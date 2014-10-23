@@ -1,4 +1,4 @@
-fasta_stats.py
+fast_stats.py
 ===========
 
 Returns N50 (or N of your choice) and other stats of a fasta/fastq file of sequences. 
@@ -12,7 +12,7 @@ Requires [Numpy](http://www.numpy.org) for calculating the median read length an
 
 ### Usage
 
-    python fasta_stats.py -i <infile> -n 50
+    python fast_stats.py -i <infile> -n 50
 
 > ##### Arguments
 
