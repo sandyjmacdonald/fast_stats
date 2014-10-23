@@ -8,7 +8,7 @@ length lies when the sequences are sorted in order of descending length.
 ### Dependencies
 
 Requires [Numpy](http://www.numpy.org) for calculating the median read length and
-[Biopython](http://biopython.org) to read in the fasta file.
+[Biopython](http://biopython.org) to read in the fasta/q file.
 
 ### Usage
 
