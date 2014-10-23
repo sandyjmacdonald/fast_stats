@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Returns N50 (or N of your choice) and other stats of a FASTA file of sequences.
+# Returns N50 (or N of your choice) and other stats of a fasta/q file of sequences.
 # N50 is calculated as the sequence length above which 50% of the total sequence 
 # length lies when the sequences are sorted in order of descending length.
 
@@ -23,18 +23,36 @@ def get_n(lengths, total_length, n):
 		i += 1
 	return n_value
 
-# Function to calculate all of the stats for a given .fasta file and value of n.
+# Nifty little generator to efficiently process sequences.
+
+def chunks(l, n):
+	for i in xrange(0, len(l), n):
+		yield l[i:i+n]
+
+# Function to calculate all of the stats for a given fasta/q file and value of n.
 # Uses itertools functions to speed things up. BioPython is slooooooow.
 
-def get_stats(fasta, n):
+def get_stats(infile, n):
 	total_length = 0
 	num_seqs = 0
 	lengths = []
-	with open(fasta) as handle:
-		for header, group in groupby(handle, lambda x:x.startswith('>')):  # Splits records into headers and sequences.
-			if not header:  # We don't care about headers.
+	if infile.endswith('fa') or infile.endswith('fasta') or infile.endswith('fn'):
+		seq_type = 'fasta'
+	elif infile.endswith('fq') or infile.endswith('fastq'):
+		seq_type = 'fastq'
+	with open(infile) as handle:
+		if seq_type == 'fasta':
+			for header, group in groupby(handle, lambda x:x.startswith('>')):  # Splits records into headers and sequences.
+				if not header:  # We don't care about headers.
+					num_seqs += 1  # Increments the number of reads.
+					length = sum(imap(lambda x: len(x.strip()), group))  # The length of the sequence.
+					lengths.append(length)
+					total_length += length
+		elif seq_type == 'fastq':
+			lines = handle.readlines()
+			for seq in chunks(lines, 4):  # Uses the chunks generator function to split sequences.
 				num_seqs += 1  # Increments the number of reads.
-				length = sum(imap(lambda x: len(x.strip()), group))  # The length of the sequence.
+				length = sum(imap(lambda x: len(x.strip()), seq[1]))  # The length of the sequence.
 				lengths.append(length)
 				total_length += length
 	lengths = sorted(lengths, reverse=True)  # Need to sort the list to calculate the Nx value.
@@ -50,14 +68,14 @@ def get_stats(fasta, n):
 def usage():
 	print """
 \nfasta_stats.py.\n
-Returns N50 (or N of your choice) and other stats of a FASTA file of sequences.\n
+Returns N50 (or N of your choice) and other stats of a fasta/q file of sequences.\n
 N50 is calculated as the sequence length above which 50% of the total sequence 
 length lies when the sequences are sorted in order of descending length.\n
 Basic usage:
-\tpython fasta_stats.py -i <fastafile> -n 50\n
+\tpython fasta_stats.py -i <infile> -n 50\n
 Arguments:
 \t-h, --help\t\t\tPrint this information.
-\t-i, --in <fastafile>\t\tFASTA-formatted input file.
+\t-i, --in <infile>\t\tfasta/q-formatted input file.
 \t-n, --number <number>\t\tA number between 1 and 100."""
 
 # Runs the main program, and parses all of the command line arguments.
@@ -75,7 +93,7 @@ def main():
 		if opt in ('-n', '--number'):
 			n = int(arg)
 		elif opt in ('-i', '--in'):
-			fasta = arg
+			infile = arg
 		elif opt in ('-h', '--help'):
 			usage()
 			sys.exit(0)
@@ -84,8 +102,8 @@ def main():
 			sys.exit(2)
 		
 	try:  # Tries to calculate the stats.
-		num_seqs, n_value, average_length, med_length, total_length, min_length, max_length  = get_stats(fasta, n)
-		print '\n***Results for %s***\n' % fasta
+		num_seqs, n_value, average_length, med_length, total_length, min_length, max_length  = get_stats(infile, n)
+		print '\n***Results for %s***\n' % infile
 		print 'There are %i sequences' % (num_seqs)
 		print 'The N%i is: %i' % (n, n_value)
 		print 'The average length is: %i' % (average_length)
