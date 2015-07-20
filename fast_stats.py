@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 
-# Returns N50 (or N of your choice) and other stats of a fasta/q file of sequences.
-# N50 is calculated as the sequence length above which 50% of the total sequence
-# length lies when the sequences are sorted in order of descending length.
+# Returns N50 (or N of your choice) and other stats of a fasta/q (can be gzipped)
+# file of sequences. N50 is calculated as the sequence length above which 50%
+# of the total sequence length lies when the sequences are sorted in order of
+# descending length.
 
 import getopt, sys
 import copy
+import gzip
 import numpy as np
 from itertools import groupby, imap
 
@@ -35,31 +37,42 @@ def get_stats(infile, n):
 	total_length = 0
 	num_seqs = 0
 	lengths = []
-	if infile.endswith('fa') or infile.endswith('fasta') or infile.endswith('fn'):
+	if infile.endswith('fa') or infile.endswith('fasta') or \
+	infile.endswith('fn') or infile.endswith('fa.gz') or \
+	infile.endswith('fn.gz') or infile.endswith('fasta.gz'):
 		seq_type = 'fasta'
-	elif infile.endswith('fq') or infile.endswith('fastq'):
+	elif infile.endswith('fq') or infile.endswith('fastq') or \
+	infile.endswith('fq.gz') or infile.endswith('fastq.gz'):
 		seq_type = 'fastq'
-	with open(infile) as handle:
-		if seq_type == 'fasta':
-			for header, group in groupby(handle, lambda x:x.startswith('>')):  # Splits records into headers and sequences.
-				if not header:  # We don't care about headers.
-					num_seqs += 1  # Increments the number of reads.
-					length = sum(imap(lambda x: len(x.strip()), group))  # The length of the sequence.
-					lengths.append(length)
-					total_length += length
-		elif seq_type == 'fastq':
-			lines = handle.readlines()
-			for seq in chunks(lines, 4):  # Uses the chunks generator function to split sequences.
+	if infile.endswith('gz'):
+		zipped = True
+	else:
+		zipped = False
+	if zipped:
+		handle = gzip.open(infile, 'rb')
+	else:
+		handle = open(infile, 'r')
+	if seq_type == 'fasta':
+		for header, group in groupby(handle, lambda x:x.startswith('>')):  # Splits records into headers and sequences.
+			if not header:  # We don't care about headers.
 				num_seqs += 1  # Increments the number of reads.
-				length = sum(imap(lambda x: len(x.strip()), seq[1]))  # The length of the sequence.
+				length = sum(imap(lambda x: len(x.strip()), group))  # The length of the sequence.
 				lengths.append(length)
 				total_length += length
+	elif seq_type == 'fastq':
+		lines = handle.readlines()
+		for seq in chunks(lines, 4):  # Uses the chunks generator function to split sequences.
+			num_seqs += 1  # Increments the number of reads.
+			length = sum(imap(lambda x: len(x.strip()), seq[1]))  # The length of the sequence.
+			lengths.append(length)
+			total_length += length
 	lengths = sorted(lengths, reverse=True)  # Need to sort the list to calculate the Nx value.
 	average_length = float(total_length)/num_seqs
 	max_length = max(lengths)
 	min_length = min(lengths)
 	med_length = np.median(lengths)
 	n_value = get_n(lengths, total_length, n)
+	handle.close()
 	return (num_seqs, n_value, average_length, med_length, total_length, min_length, max_length)
 
 # How to use this.
