@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
 # Returns N50 (or N of your choice) and other stats of a fasta/q file of sequences.
-# N50 is calculated as the sequence length above which 50% of the total sequence 
+# N50 is calculated as the sequence length above which 50% of the total sequence
 # length lies when the sequences are sorted in order of descending length.
 
 import getopt, sys
 import copy
 import numpy as np
-from Bio import SeqIO
 from itertools import groupby, imap
 
 # Calculate the Nx where x is a number between 1 and 100.
@@ -69,7 +68,7 @@ def usage():
 	print """
 \nfast_stats.py.\n
 Returns N50 (or N of your choice) and other stats of a fasta/q file of sequences.\n
-N50 is calculated as the sequence length above which 50% of the total sequence 
+N50 is calculated as the sequence length above which 50% of the total sequence
 length lies when the sequences are sorted in order of descending length.\n
 Basic usage:
 \tpython fast_stats.py -i <infile> -n 50\n
@@ -100,7 +99,7 @@ def main():
 		else:
 			usage()
 			sys.exit(2)
-		
+
 	try:  # Tries to calculate the stats.
 		num_seqs, n_value, average_length, med_length, total_length, min_length, max_length  = get_stats(infile, n)
 		print '\n***Results for %s***\n' % infile
